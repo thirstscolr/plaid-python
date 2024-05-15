@@ -9,6 +9,7 @@
 
 
 from calendar import timegm
+from datetime import timezone
 from jose import jwt
 import json
 import atexit
@@ -659,7 +660,7 @@ class ApiClient(object):
             )
 
     def _generate_proof_of_possession(self, headers, resource_path, method, body, auth_setting):
-        claims = {'htm': method, 'htu': resource_path}
+        claims = {'htm': method, 'htu': resource_path, 'client_id': headers["PLAID-CLIENT-ID"]}
         if 'access_token' in body.keys():
             claims['access_token'] = body['access_token']
         if 'link_token' in body.keys():
@@ -670,7 +671,7 @@ class ApiClient(object):
         jwt_headers['jwk'] = self.configuration.public_key.to_dict()
 
         claims['jti'] = str(uuid4())
-        claims['iat'] = timegm(datetime.now().utctimetuple())
+        claims['iat'] = timegm(datetime.now(timezone.utc).utctimetuple())
 
         token = jwt.encode(claims, self.configuration.private_key, algorithm=self.configuration.alg, headers=jwt_headers)
 
