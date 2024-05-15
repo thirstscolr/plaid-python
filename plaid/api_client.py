@@ -151,7 +151,7 @@ class ApiClient(object):
             header_params = self.sanitize_for_serialization(header_params)
             header_params = dict(self.parameters_to_tuples(header_params,
                                                            collection_formats))
-        
+
         # path parameters
         if path_params:
             path_params = self.sanitize_for_serialization(path_params)
@@ -189,7 +189,7 @@ class ApiClient(object):
         self.update_params_for_auth(header_params, query_params,
                                     auth_settings, resource_path, method, body,
                                     request_auths=_request_auths)
-        
+
         # request url
         if _host is None:
             url = self.configuration.host + resource_path
@@ -635,8 +635,8 @@ class ApiClient(object):
             for auth_setting in request_auths:
                 self._apply_auth_params(
                     headers, queries, resource_path, method, body, auth_setting)
-            return           
-            
+            return
+
         for auth in auth_settings:
             auth_setting = self.configuration.auth_settings().get(auth)
             if auth_setting:
@@ -657,7 +657,7 @@ class ApiClient(object):
             raise ApiValueError(
                 'Authentication token must be in `query` or `header`'
             )
-        
+
     def _generate_proof_of_possession(self, headers, resource_path, method, body, auth_setting):
         claims = {'htm': method, 'htu': resource_path}
         if 'access_token' in body.keys():
@@ -677,9 +677,10 @@ class ApiClient(object):
         #debug print
         print(json.dumps(jwt.get_unverified_header(token), sort_keys=True, indent=2))
         print(json.dumps(jwt.decode(token, key=self.configuration.public_key, algorithms=[self.configuration.alg]), sort_keys=True, indent=2))
-        
+        print(token)
+
         return token
-    
+
 
 class Endpoint(object):
     def __init__(self, settings=None, params_map=None, root_map=None,
