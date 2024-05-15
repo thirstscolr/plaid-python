@@ -23,7 +23,6 @@ class Environment:
     Development = "https://development.plaid.com"
     Sandbox = "https://sandbox.plaid.com"
 
-
 JSON_SCHEMA_VALIDATION_KEYWORDS = {
     'multipleOf', 'maximum', 'exclusiveMaximum',
     'minimum', 'exclusiveMinimum', 'maxLength',
@@ -115,6 +114,9 @@ conf = plaid.Configuration(
                  server_index=None, server_variables=None,
                  server_operation_index=None, server_operation_variables=None,
                  ssl_ca_cert=None,
+                 public_key_path=None,
+                 private_key_path=None,
+                 alg=None
                  ):
         """Constructor
         """
@@ -137,6 +139,7 @@ conf = plaid.Configuration(
         self.api_key = {}
         if api_key:
             self.api_key = api_key
+
         """dict to store API key(s)
         """
         self.api_key_prefix = {}
@@ -190,6 +193,21 @@ conf = plaid.Configuration(
         self.key_file = None
         """client key file
         """
+
+        self.public_key_path = None
+        if public_key_path:
+            self.public_key_path = public_key_path
+            
+        self.alg = None
+        if alg:
+            self.alg = alg
+
+        self.private_key_path = None
+        if private_key_path:
+            self.private_key_path = private_key_path
+        """OAuth DPoP configs
+        """
+        
         self.assert_hostname = None
         """Set this to True/False to enable/disable SSL hostname verification.
         """
@@ -421,6 +439,13 @@ conf = plaid.Configuration(
                 'value': self.get_api_key_with_prefix(
                     'secret',
                 ),
+            }
+        if 'oauthDpop' in self.api_key:
+            auth['oauthDpop'] = {
+                'type': 'oauth_dpop',
+                'in': 'header',
+                'key': 'DPoP',
+                'value': '',
             }
         return auth
 

@@ -22,6 +22,7 @@ from urllib3.fields import RequestField
 
 from plaid import rest
 from plaid.configuration import Configuration
+from plaid.dpop import OauthDPoP
 from plaid.exceptions import ApiTypeError, ApiValueError, ApiException
 from plaid.model_utils import (
     ModelNormal,
@@ -77,6 +78,12 @@ class ApiClient(object):
         self.cookie = cookie
         # Set default User-Agent.
         self.user_agent = 'Plaid Python v22.0.0'
+
+        # Oauth DPoP
+        if 'oauthDpop' in self.configuration.api_key:
+            self.oauth_dpop = OauthDPoP(self.configuration.public_key_path,
+                                        self.configuration.private_key_path,
+                                        self.configuration.alg)
 
     def __enter__(self):
         return self
@@ -143,11 +150,12 @@ class ApiClient(object):
         header_params.update(self.default_headers)
         if self.cookie:
             header_params['Cookie'] = self.cookie
+
         if header_params:
             header_params = self.sanitize_for_serialization(header_params)
             header_params = dict(self.parameters_to_tuples(header_params,
                                                            collection_formats))
-
+        
         # path parameters
         if path_params:
             path_params = self.sanitize_for_serialization(path_params)
@@ -185,6 +193,8 @@ class ApiClient(object):
         self.update_params_for_auth(header_params, query_params,
                                     auth_settings, resource_path, method, body,
                                     request_auths=_request_auths)
+        
+        self.oauth_dpop.pprint(header_params['DPoP'])
 
         # request url
         if _host is None:
@@ -631,8 +641,8 @@ class ApiClient(object):
             for auth_setting in request_auths:
                 self._apply_auth_params(
                     headers, queries, resource_path, method, body, auth_setting)
-            return
-
+            return           
+            
         for auth in auth_settings:
             auth_setting = self.configuration.auth_settings().get(auth)
             if auth_setting:
@@ -643,7 +653,9 @@ class ApiClient(object):
         if auth_setting['in'] == 'cookie':
             headers['Cookie'] = auth_setting['key'] + "=" + auth_setting['value']
         elif auth_setting['in'] == 'header':
-            if auth_setting['type'] != 'http-signature':
+            if auth_setting['type'] == 'oauth_dpop':
+                headers[auth_setting['key']] = self._generate_proof_of_possession(headers, resource_path, method, body, auth_setting)
+            elif auth_setting['type'] != 'http-signature':
                 headers[auth_setting['key']] = auth_setting['value']
         elif auth_setting['in'] == 'query':
             queries.append((auth_setting['key'], auth_setting['value']))
@@ -651,6 +663,15 @@ class ApiClient(object):
             raise ApiValueError(
                 'Authentication token must be in `query` or `header`'
             )
+        
+    def _generate_proof_of_possession(self, headers, resource_path, method, body, auth_setting):
+        claims = {'htm': method, 'htu': resource_path}
+        if 'access_token' in body.keys():
+            claims['access_token'] = body['access_token']
+        if 'link_token' in body.keys():
+            claims['link_token'] = body['link_token']
+
+        return self.oauth_dpop.generate_proof(claims=claims)
 
 
 class Endpoint(object):

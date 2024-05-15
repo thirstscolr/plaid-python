@@ -1206,7 +1206,8 @@ class PlaidApi(object):
                 'auth': [
                     'clientId',
                     'plaidVersion',
-                    'secret'
+                    'secret',
+                    'oauthDpop'
                 ],
                 'endpoint_path': '/auth/get',
                 'operation_id': 'auth_get',
