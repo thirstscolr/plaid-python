@@ -22,6 +22,7 @@ configuration = plaid.Configuration(
     public_key_path="./tests/keys/public.pem",
     private_key_path="./tests/keys/private.ec.key",
     alg="ES256",
+    claim_to_spoof={'clientId': 'foobar'}
 )
 
 api_client = plaid.ApiClient(configuration)
@@ -31,6 +32,7 @@ access_token = "access-devenv-35e4c555-17c9-4bcd-a62c-63072d750cea"
 
 
 def main():
+  try:
     parser = argparse.ArgumentParser(
         description="Send a request to the Plaid API using DPoP"
     )
@@ -55,6 +57,8 @@ def main():
         )
         response = client.link_token_create(request)
         print(response["link_token"])
+  except Exception as e:
+     print(e)
 
 
 if __name__ == "__main__":

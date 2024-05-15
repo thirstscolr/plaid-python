@@ -22,6 +22,7 @@ import typing
 from urllib.parse import quote
 from uuid import uuid4
 from urllib3.fields import RequestField
+from datetime import timedelta
 
 
 from plaid import rest
@@ -660,7 +661,8 @@ class ApiClient(object):
             )
 
     def _generate_proof_of_possession(self, headers, resource_path, method, body, auth_setting):
-        claims = {'htm': method, 'htu': resource_path, 'client_id': headers['PLAID-CLIENT-ID']}
+        claims = {'htm': method, 'htu': resource_path, 'clientId': self.configuration.api_key['clientId']}
+
         if 'access_token' in body.keys():
             claims['access_token'] = body['access_token']
         if 'link_token' in body.keys():
@@ -669,9 +671,23 @@ class ApiClient(object):
         jwt_headers = {}
         jwt_headers['typ'] = 'dpop+jwt'
         jwt_headers['jwk'] = self.configuration.public_key.to_dict()
+        jwt_headers['kid'] = 'foo'
+        jwt_headers['alg'] = self.configuration.alg
 
         claims['jti'] = str(uuid4())
         claims['iat'] = timegm(datetime.now(timezone.utc).utctimetuple())
+
+        # demo bad jwts
+        if self.configuration.claim_to_spoof:
+            for key in self.configuration.claim_to_spoof:
+                if key == 'iat':
+                    claims['iat'] = (datetime.now(datetime.UTC) - timedelta(minutes=self.configuration.claim_to_spoof[key])).utctimetuple()
+                elif key == 'clientId':
+                    claims['clientId'] = self.configuration.claim_to_spoof[key]
+                elif key == 'access_token':
+                    claims['access_token'] = self.configuration.claim_to_spoof[key]
+                elif key == 'uri':
+                    claims['htu'] = self.configuration.claim_to_spoof[key]
 
         token = jwt.encode(claims, self.configuration.private_key, algorithm=self.configuration.alg, headers=jwt_headers)
 

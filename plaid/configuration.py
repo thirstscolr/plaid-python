@@ -117,7 +117,8 @@ conf = plaid.Configuration(
                  ssl_ca_cert=None,
                  public_key_path=None,
                  private_key_path=None,
-                 alg=None
+                 alg=None,
+                 claim_to_spoof=None
                  ):
         """Constructor
         """
@@ -195,13 +196,10 @@ conf = plaid.Configuration(
         """client key file
         """
 
-        self.alg = None
-        self.public_key = None
-        self.private_key = None
+        self.alg = alg
+        self.claim_to_spoof = claim_to_spoof
 
-        if alg:
-            self.alg = alg
-
+        if self.alg:
             if public_key_path:
                 self.public_key  = ECKey(open(public_key_path, 'r').read(), alg)
 
