@@ -22,7 +22,7 @@ configuration = plaid.Configuration(
     public_key_path="./tests/keys/public.pem",
     private_key_path="./tests/keys/private.ec.key",
     alg="ES256",
-    claim_to_spoof={'client_id': 'foobar'}
+    claim_to_spoof={'iat': 0, 'client_id': 'foobar', 'access_token': 'fake', 'uri':'/admin/settings'}
 )
 
 api_client = plaid.ApiClient(configuration)

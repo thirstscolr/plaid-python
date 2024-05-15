@@ -681,13 +681,9 @@ class ApiClient(object):
         if self.configuration.claim_to_spoof:
             for key in self.configuration.claim_to_spoof:
                 if key == 'iat':
-                    claims['iat'] = (datetime.now(datetime.UTC) - timedelta(minutes=self.configuration.claim_to_spoof[key])).utctimetuple()
-                elif key == 'client_id':
-                    claims['client_id'] = self.configuration.claim_to_spoof[key]
-                elif key == 'access_token':
-                    claims['access_token'] = self.configuration.claim_to_spoof[key]
-                elif key == 'uri':
-                    claims['htu'] = self.configuration.claim_to_spoof[key]
+                    claims[key] = timegm((datetime.now(timezone.utc) - timedelta(minutes=self.configuration.claim_to_spoof[key])).utctimetuple())
+                else:
+                    claims[key] = self.configuration.claim_to_spoof[key]
 
         token = jwt.encode(claims, self.configuration.private_key, algorithm=self.configuration.alg, headers=jwt_headers)
 
