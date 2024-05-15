@@ -6819,7 +6819,8 @@ class PlaidApi(object):
                 'auth': [
                     'clientId',
                     'plaidVersion',
-                    'secret'
+                    'secret',
+                    'oauthDpop'
                 ],
                 'endpoint_path': '/link/token/create',
                 'operation_id': 'link_token_create',
