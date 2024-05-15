@@ -661,7 +661,7 @@ class ApiClient(object):
             )
 
     def _generate_proof_of_possession(self, headers, resource_path, method, body, auth_setting):
-        claims = {'htm': method, 'htu': resource_path, 'clientId': self.configuration.api_key['clientId']}
+        claims = {'htm': method, 'htu': resource_path, 'client_id': self.configuration.api_key['clientId']}
 
         if 'access_token' in body.keys():
             claims['access_token'] = body['access_token']
@@ -682,8 +682,8 @@ class ApiClient(object):
             for key in self.configuration.claim_to_spoof:
                 if key == 'iat':
                     claims['iat'] = (datetime.now(datetime.UTC) - timedelta(minutes=self.configuration.claim_to_spoof[key])).utctimetuple()
-                elif key == 'clientId':
-                    claims['clientId'] = self.configuration.claim_to_spoof[key]
+                elif key == 'client_id':
+                    claims['client_id'] = self.configuration.claim_to_spoof[key]
                 elif key == 'access_token':
                     claims['access_token'] = self.configuration.claim_to_spoof[key]
                 elif key == 'uri':
