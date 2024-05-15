@@ -6280,7 +6280,7 @@ class PlaidApi(object):
                     'clientId',
                     'plaidVersion',
                     'secret',
-		     'oauthDpop'
+		    'oauthDpop'
                 ],
                 'endpoint_path': '/item/get',
                 'operation_id': 'item_get',
