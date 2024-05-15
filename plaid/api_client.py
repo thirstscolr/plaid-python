@@ -670,7 +670,7 @@ class ApiClient(object):
         jwt_headers['jwk'] = self.configuration.public_key.to_dict()
 
         claims['jti'] = str(uuid4())
-        claims['ati'] = timegm(datetime.now().utctimetuple())
+        claims['iat'] = timegm(datetime.now().utctimetuple())
 
         token = jwt.encode(claims, self.configuration.private_key, algorithm=self.configuration.alg, headers=jwt_headers)
 
