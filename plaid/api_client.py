@@ -8,6 +8,8 @@
 """
 
 
+from calendar import timegm
+from jose import jwt
 import json
 import atexit
 import mimetypes
@@ -17,12 +19,12 @@ import os
 import re
 import typing
 from urllib.parse import quote
+from uuid import uuid4
 from urllib3.fields import RequestField
 
 
 from plaid import rest
 from plaid.configuration import Configuration
-from plaid.dpop import OauthDPoP
 from plaid.exceptions import ApiTypeError, ApiValueError, ApiException
 from plaid.model_utils import (
     ModelNormal,
@@ -78,12 +80,6 @@ class ApiClient(object):
         self.cookie = cookie
         # Set default User-Agent.
         self.user_agent = 'Plaid Python v22.0.0'
-
-        # Oauth DPoP
-        if 'oauthDpop' in self.configuration.api_key:
-            self.oauth_dpop = OauthDPoP(self.configuration.public_key_path,
-                                        self.configuration.private_key_path,
-                                        self.configuration.alg)
 
     def __enter__(self):
         return self
@@ -194,8 +190,6 @@ class ApiClient(object):
                                     auth_settings, resource_path, method, body,
                                     request_auths=_request_auths)
         
-        self.oauth_dpop.pprint(header_params['DPoP'])
-
         # request url
         if _host is None:
             url = self.configuration.host + resource_path
@@ -671,8 +665,21 @@ class ApiClient(object):
         if 'link_token' in body.keys():
             claims['link_token'] = body['link_token']
 
-        return self.oauth_dpop.generate_proof(claims=claims)
+        jwt_headers = {}
+        jwt_headers['typ'] = 'dpop+jwt'
+        jwt_headers['jwk'] = self.configuration.public_key.to_dict()
 
+        claims['jti'] = str(uuid4())
+        claims['ati'] = timegm(datetime.now().utctimetuple())
+
+        token = jwt.encode(claims, self.configuration.private_key, algorithm=self.configuration.alg, headers=jwt_headers)
+
+        #debug print
+        print(json.dumps(jwt.get_unverified_header(token), sort_keys=True, indent=2))
+        print(json.dumps(jwt.decode(token, key=self.configuration.public_key, algorithms=[self.configuration.alg]), sort_keys=True, indent=2))
+        
+        return token
+    
 
 class Endpoint(object):
     def __init__(self, settings=None, params_map=None, root_map=None,

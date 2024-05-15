@@ -15,6 +15,7 @@ import sys
 import urllib3
 
 from http import client as http_client
+from jose.backends import ECKey
 from plaid.exceptions import ApiValueError
 
 
@@ -194,17 +195,18 @@ conf = plaid.Configuration(
         """client key file
         """
 
-        self.public_key_path = None
-        if public_key_path:
-            self.public_key_path = public_key_path
-            
         self.alg = None
+        self.public_key = None
+        self.private_key = None
+
         if alg:
             self.alg = alg
 
-        self.private_key_path = None
-        if private_key_path:
-            self.private_key_path = private_key_path
+            if public_key_path:
+                self.public_key  = ECKey(open(public_key_path, 'r').read(), alg)
+
+            if private_key_path:
+                self.private_key = ECKey(open(private_key_path).read(), alg)
         """OAuth DPoP configs
         """
         
