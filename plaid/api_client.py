@@ -660,7 +660,7 @@ class ApiClient(object):
             )
 
     def _generate_proof_of_possession(self, headers, resource_path, method, body, auth_setting):
-        claims = {'htm': method, 'htu': resource_path, 'client_id': headers["PLAID-CLIENT-ID"]}
+        claims = {'htm': method, 'htu': resource_path, 'client_id': headers['PLAID-CLIENT-ID']}
         if 'access_token' in body.keys():
             claims['access_token'] = body['access_token']
         if 'link_token' in body.keys():
