@@ -661,21 +661,20 @@ class ApiClient(object):
             )
 
     def _generate_proof_of_possession(self, headers, resource_path, method, body, auth_setting):
-        claims = {'htm': method, 'htu': resource_path, 'client_id': self.configuration.api_key['clientId']}
-
-        if 'access_token' in body.keys():
-            claims['access_token'] = body['access_token']
-        if 'link_token' in body.keys():
-            claims['link_token'] = body['link_token']
-
         jwt_headers = {}
         jwt_headers['typ'] = 'dpop+jwt'
         jwt_headers['jwk'] = self.configuration.public_key.to_dict()
         jwt_headers['kid'] = 'foo'
         jwt_headers['alg'] = self.configuration.alg
 
+        claims = {'htm': method, 'htu': resource_path, 'client_id': self.configuration.api_key['clientId']}
         claims['jti'] = str(uuid4())
         claims['iat'] = timegm(datetime.now(timezone.utc).utctimetuple())
+
+        if 'access_token' in body.keys():
+            claims['access_token'] = body['access_token']
+        if 'link_token' in body.keys():
+            claims['link_token'] = body['link_token']
 
         # demo bad jwts
         if self.configuration.claim_to_spoof:
