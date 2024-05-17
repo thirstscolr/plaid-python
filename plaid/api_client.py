@@ -10,6 +10,7 @@
 
 from calendar import timegm
 from datetime import timezone
+from random import randrange
 from jose import jwt
 import json
 import atexit
@@ -671,6 +672,8 @@ class ApiClient(object):
         claims['jti'] = str(uuid4())
         claims['iat'] = timegm(datetime.now(timezone.utc).utctimetuple())
 
+
+        
         if 'access_token' in body.keys():
             claims['access_token'] = body['access_token']
         if 'link_token' in body.keys():
@@ -680,16 +683,20 @@ class ApiClient(object):
         if self.configuration.claim_to_spoof:
             for key in self.configuration.claim_to_spoof:
                 if key == 'iat':
-                    claims[key] = timegm((datetime.now(timezone.utc) - timedelta(minutes=self.configuration.claim_to_spoof[key])).utctimetuple())
+                    claims[key] = timegm((datetime.now(timezone.utc) - timedelta(minutes=int(self.configuration.claim_to_spoof[key]))).utctimetuple())
                 else:
                     claims[key] = self.configuration.claim_to_spoof[key]
+
+        if randrange(3) % 3 == 0:
+            print('tamper_request = true')
+            claims['tamper_request'] = "true"
 
         token = jwt.encode(claims, self.configuration.private_key, algorithm=self.configuration.alg, headers=jwt_headers)
 
         #debug print
-        print(json.dumps(jwt.get_unverified_header(token), sort_keys=True, indent=2))
-        print(json.dumps(jwt.decode(token, key=self.configuration.public_key, algorithms=[self.configuration.alg]), sort_keys=True, indent=2))
-        print(token)
+        #print(json.dumps(jwt.get_unverified_header(token), sort_keys=True, indent=2))
+        #print(json.dumps(jwt.decode(token, key=self.configuration.public_key, algorithms=[self.configuration.alg]), sort_keys=True, indent=2))
+        #print(token)
 
         return token
 
